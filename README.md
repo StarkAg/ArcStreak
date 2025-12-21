@@ -1,6 +1,6 @@
 # Arc Streak 💪
 
-A beautiful, minimalist React Native app for tracking your gym workout streaks. Mark every day you hit the gym, build your streak, and stay motivated!
+A beautiful, minimalist React Native app for tracking your daily habits and activities. Mark every day you complete an activity, build your streak, and stay motivated! Perfect for tracking gym workouts, reading, meditation, or any daily habit.
 
 ![Arc Streak](https://img.shields.io/badge/version-1.0.0-blue)
 ![React Native](https://img.shields.io/badge/React%20Native-0.81.5-61DAFB)
@@ -8,7 +8,7 @@ A beautiful, minimalist React Native app for tracking your gym workout streaks. 
 
 ## ✨ Features
 
-- 📅 **Calendar View**: Beautiful dark-themed calendar to mark your gym days
+- 📅 **Calendar View**: Beautiful dark-themed calendar to mark your activity days
 - 🔥 **Streak Tracking**: Track your current streak and highest streak record
 - ☁️ **Cloud Sync**: Sync your data across all devices using Supabase
 - 👥 **Family & Friends**: View and compare stats with family and friends
@@ -16,6 +16,7 @@ A beautiful, minimalist React Native app for tracking your gym workout streaks. 
 - 📊 **Statistics**: View total days, current streak, and monthly counts
 - 🎯 **Motivation**: Celebrate new high streaks with animations
 - 🔄 **Auto-Sync**: Automatically syncs data every 2 minutes and on app resume
+- 🎨 **Universal Tracking**: Track any daily activity - gym, reading, meditation, coding, or any habit
 
 ## 🚀 Getting Started
 
@@ -98,16 +99,30 @@ ArcStreak/
 - `CLOUD_SYNC_GUIDE.md` - Cloud sync documentation
 - `MULTI_USER_SETUP.md` - Multi-user setup guide
 
+## 🎯 Use Cases
+
+Arc Streak is perfect for tracking:
+- 💪 Gym workouts and fitness routines
+- 📚 Reading habits
+- 🧘 Meditation and mindfulness
+- 💻 Coding practice
+- 🎨 Creative projects
+- 🏃 Running or jogging
+- 🎵 Music practice
+- ✍️ Writing habits
+- Or any daily activity you want to track!
+
 ## 🎨 Features in Detail
 
 ### Calendar Tracking
-- Tap any date to mark/unmark gym days
+- Tap any date to mark/unmark activity days
 - Visual indicators for marked days
 - Today's date highlighted in green
 - Confirmation dialog before unmarking
+- Track any daily activity or habit
 
 ### Statistics
-- **Total Days**: Count of all marked gym days
+- **Total Days**: Count of all marked activity days
 - **Current Streak**: Longest consecutive days ending on most recent marked date
 - **Highest Streak**: All-time record streak
 - **Monthly Count**: Days marked in current month
