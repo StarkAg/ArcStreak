@@ -225,7 +225,7 @@ export default function HomeScreen() {
       setGroupedDays(grouped);
     } catch (error) {
       console.error('Error loading gym days:', error);
-      Alert.alert('Error', 'Failed to load gym days');
+      Alert.alert('Error', 'Failed to load activity days');
     } finally {
       setLoading(false);
     }
@@ -472,7 +472,7 @@ export default function HomeScreen() {
     } catch (error) {
       console.error('Error toggling gym day:', error);
       triggerHaptic('warning');
-      Alert.alert('Error', 'Failed to update gym day');
+      Alert.alert('Error', 'Failed to update activity day');
     }
   };
 
@@ -961,7 +961,7 @@ export default function HomeScreen() {
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>All Gym Days</Text>
+                <Text style={styles.modalTitle}>All Activity Days</Text>
                 <TouchableOpacity
                   onPress={() => {
                     triggerHaptic('light');
@@ -1001,7 +1001,7 @@ export default function HomeScreen() {
                 )}
                 ListEmptyComponent={
                   <View style={styles.emptyContainer}>
-                    <Text style={styles.emptyText}>No gym days recorded yet</Text>
+                    <Text style={styles.emptyText}>No activity days recorded yet</Text>
                   </View>
                 }
               />
@@ -1012,7 +1012,7 @@ export default function HomeScreen() {
                   triggerHaptic('medium');
                   Alert.alert(
                     'Reset All Days',
-                    'Are you sure you want to delete all gym days? This action cannot be undone.',
+                    'Are you sure you want to delete all activity days? This action cannot be undone.',
                     [
                       {
                         text: 'Cancel',
@@ -1061,7 +1061,7 @@ export default function HomeScreen() {
                               currentMonthCount: 0,
                             });
                             setGroupedDays({});
-                            Alert.alert('Success', 'All gym days have been deleted');
+                            Alert.alert('Success', 'All activity days have been deleted');
                             // Reload to refresh the modal
                             const days = await getGymDays();
                             const grouped: Record<string, string[]> = {};
@@ -1412,9 +1412,9 @@ export default function HomeScreen() {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.unmarkModalContent}>
-              <Text style={styles.unmarkModalTitle}>Unmark Gym Day</Text>
+              <Text style={styles.unmarkModalTitle}>Unmark Activity Day</Text>
               <Text style={styles.unmarkModalMessage}>
-                Are you sure you want to unmark {dateToUnmark}?
+                Are you sure you want to unmark this activity day ({dateToUnmark})?
               </Text>
               <View style={styles.unmarkModalButtons}>
                 <TouchableOpacity
