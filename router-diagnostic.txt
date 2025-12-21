@@ -1,0 +1,26 @@
+ROUTER DIAGNOSTIC TEST
+======================
+
+Test 1: Basic HTTP Connection
+- Open Safari on iPhone
+- Go to: http://192.168.29.174:8000
+- Expected: Green page saying "Connection Test Successful"
+- If fails: Router has AP Isolation enabled
+
+Test 2: Check Router Settings
+Common router settings that block device-to-device:
+- "AP Isolation" or "Client Isolation" 
+- "Wireless Isolation"
+- "Station Isolation"
+- "Guest Network" (if iPhone is on guest network)
+
+Test 3: Network Verification
+- Mac IP: 192.168.29.174
+- Both devices must be on same WiFi network
+- Check iPhone WiFi settings to confirm network name
+
+SOLUTION IF ROUTER IS BLOCKING:
+Use tunnel mode instead:
+npx expo start --tunnel
+
+This routes through Expo's servers and bypasses router restrictions.
