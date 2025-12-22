@@ -17,6 +17,3 @@ web-build/
 .env
 .env.local
 
-# Supabase config (contains sensitive keys)
-config/supabase.ts
-
