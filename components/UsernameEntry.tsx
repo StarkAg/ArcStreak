@@ -174,12 +174,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginBottom: 8,
     textAlign: 'center',
+    fontFamily: 'Stark',
   },
   subtitle: {
     fontSize: 14,
     color: '#CCCCCC',
     marginBottom: 24,
     textAlign: 'center',
+    fontFamily: 'Stark',
   },
   input: {
     backgroundColor: '#000000',
@@ -190,12 +192,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#333333',
     marginBottom: 8,
+    fontFamily: 'Stark',
   },
   hint: {
     fontSize: 12,
     color: '#666666',
     marginBottom: 24,
     textAlign: 'center',
+    fontFamily: 'Stark',
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -222,11 +226,13 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+    fontFamily: 'Stark',
   },
   saveButtonText: {
     color: '#000000',
     fontSize: 16,
     fontWeight: 'bold',
+    fontFamily: 'Stark',
   },
 });
 
