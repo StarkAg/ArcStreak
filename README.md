@@ -1,13 +1,5 @@
 # Arc Streak 💪
 
-A beautiful, minimalist React Native app for tracking your daily habits and activities. Mark every day you complete an activity, build your streak, and stay motivated! Perfect for tracking gym workouts, reading, meditation, or any daily habit.
-
-![Arc Streak](https://img.shields.io/badge/version-1.0.0-blue)
-![React Native](https://img.shields.io/badge/React%20Native-0.81.5-61DAFB)
-![Expo](https://img.shields.io/badge/Expo-54.0.0-000020)
-
-## ✨ Features
-
 - 📅 **Calendar View**: Beautiful dark-themed calendar to mark your activity days
 - 🔥 **Streak Tracking**: Track your current streak and highest streak record
 - ☁️ **Cloud Sync**: Sync your data across all devices using Supabase
