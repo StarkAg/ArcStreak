@@ -6,7 +6,7 @@ A beautiful, minimalist React Native app for tracking your daily habits and acti
 ![React Native](https://img.shields.io/badge/React%20Native-0.81.5-61DAFB)
 ![Expo](https://img.shields.io/badge/Expo-54.0.0-000020)
 
-## ✨ Features
+## ✨ Feature
 
 - 📅 **Calendar View**: Beautiful dark-themed calendar to mark your activity days
 - 🔥 **Streak Tracking**: Track your current streak and highest streak record
