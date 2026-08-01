@@ -8,9 +8,18 @@ import {
   TextInput,
   ScrollView,
   Alert,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  Dimensions,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface AddSubjectModalProps {
   visible: boolean;
@@ -37,10 +46,11 @@ export default function AddSubjectModal({
   existingSubjects,
   customSubjects,
 }: AddSubjectModalProps) {
-  const [selectedSubject, setSelectedSubject] = useState<string>('');
-  const [customSubjectName, setCustomSubjectName] = useState('');
+  const insets = useSafeAreaInsets();
+  const [searchQuery, setSearchQuery] = useState('');
   const [targetPercentage, setTargetPercentage] = useState('75');
-  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [addedSubjects, setAddedSubjects] = useState<string[]>([]);
+  const [showResults, setShowResults] = useState(false);
 
   const triggerHaptic = (type: 'light' | 'medium' | 'heavy' | 'warning' | 'success') => {
     try {
@@ -66,58 +76,72 @@ export default function AddSubjectModal({
     }
   };
 
-  const handleAdd = () => {
-    const subjectName = showCustomInput ? customSubjectName.trim() : selectedSubject;
+  // Filter subjects based on search query
+  const allSubjects = [...PREDEFINED_SUBJECTS, ...customSubjects];
+  const availableSubjects = allSubjects.filter(
+    (sub) => !existingSubjects.includes(sub) && !addedSubjects.includes(sub)
+  );
+  
+  const filteredSubjects = searchQuery.trim()
+    ? availableSubjects.filter((sub) =>
+        sub.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : availableSubjects;
+
+  const handleAddSubject = (subjectName: string) => {
+    if (existingSubjects.includes(subjectName) || addedSubjects.includes(subjectName)) {
+      triggerHaptic('warning');
+      Alert.alert('Error', 'This subject is already added');
+      return;
+    }
+
+    triggerHaptic('success');
+    setAddedSubjects([...addedSubjects, subjectName]);
+    setSearchQuery('');
+    setShowResults(false);
+  };
+
+  const handleRemoveAddedSubject = (subjectName: string) => {
+    triggerHaptic('light');
+    setAddedSubjects(addedSubjects.filter((sub) => sub !== subjectName));
+  };
+
+  const handleConfirmAdd = () => {
+    if (addedSubjects.length === 0) {
+      triggerHaptic('warning');
+      Alert.alert('Error', 'Please add at least one subject');
+      return;
+    }
+
     const target = parseInt(targetPercentage, 10);
-
-    if (!subjectName) {
-      triggerHaptic('warning');
-      Alert.alert('Error', 'Please select or enter a subject name');
-      return;
-    }
-
-    if (existingSubjects.includes(subjectName)) {
-      triggerHaptic('warning');
-      Alert.alert('Error', 'This subject already exists');
-      return;
-    }
-
     if (isNaN(target) || target < 0 || target > 100) {
       triggerHaptic('warning');
       Alert.alert('Error', 'Target percentage must be between 0 and 100');
       return;
     }
 
+    // Add all subjects
+    addedSubjects.forEach((subjectName) => {
+      onAddSubject(subjectName, target);
+    });
+
     triggerHaptic('success');
-    onAddSubject(subjectName, target);
     handleClose();
   };
 
   const handleClose = () => {
-    setSelectedSubject('');
-    setCustomSubjectName('');
+    setSearchQuery('');
     setTargetPercentage('75');
-    setShowCustomInput(false);
+    setAddedSubjects([]);
+    setShowResults(false);
     onClose();
   };
 
-  const handleDropdownChange = (value: string) => {
-    triggerHaptic('light');
-    if (value === 'custom') {
-      setShowCustomInput(true);
-      setSelectedSubject('');
-    } else {
-      setShowCustomInput(false);
-      setSelectedSubject(value);
-      setCustomSubjectName('');
-    }
-  };
-
-  const availableSubjects = PREDEFINED_SUBJECTS.filter(sub => !existingSubjects.includes(sub));
-  const allOptions = [
-    ...availableSubjects,
-    'Add Custom Subject',
-  ];
+  // If search query doesn't match any subject, allow adding as custom
+  const canAddCustom = searchQuery.trim() && 
+    !filteredSubjects.some(sub => sub.toLowerCase() === searchQuery.toLowerCase().trim()) &&
+    !existingSubjects.includes(searchQuery.trim()) &&
+    !addedSubjects.includes(searchQuery.trim());
 
   return (
     <Modal
@@ -126,78 +150,118 @@ export default function AddSubjectModal({
       animationType="slide"
       onRequestClose={handleClose}
     >
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Add Subject</Text>
-            <TouchableOpacity
-              onPress={() => {
-                triggerHaptic('light');
-                handleClose();
-              }}
-              style={styles.closeButton}
-            >
-              <Ionicons name="close" size={24} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.overlay}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.keyboardAvoidingView}
+            keyboardVerticalOffset={0}
+          >
+            <View style={[styles.container, { paddingTop: insets.top }]}>
+                <View style={styles.header}>
+                  <Text style={styles.title}>Add Subject</Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      triggerHaptic('light');
+                      handleClose();
+                    }}
+                    style={styles.closeButton}
+                  >
+                    <Ionicons name="close" size={24} color="#FFFFFF" />
+                  </TouchableOpacity>
+                </View>
 
-          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-            {/* Subject Dropdown */}
+                <View style={styles.content}>
+            {/* Search Box */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Subject</Text>
-              <View style={styles.dropdownContainer}>
-                <ScrollView 
-                  style={styles.dropdown}
-                  nestedScrollEnabled={true}
-                  showsVerticalScrollIndicator={false}
-                >
-                  {allOptions.map((option, index) => {
-                    const isCustomOption = option === 'Add Custom Subject';
-                    const isSelected = !showCustomInput && selectedSubject === option;
-                    
-                    return (
-                      <TouchableOpacity
-                        key={index}
-                        style={[
-                          styles.dropdownItem,
-                          isSelected && styles.dropdownItemActive,
-                          isCustomOption && styles.customOption,
-                        ]}
-                        onPress={() => handleDropdownChange(isCustomOption ? 'custom' : option)}
-                        activeOpacity={0.7}
-                      >
-                        <Text
-                          style={[
-                            styles.dropdownItemText,
-                            isSelected && styles.dropdownItemTextActive,
-                            isCustomOption && styles.customOptionText,
-                          ]}
-                        >
-                          {option}
-                        </Text>
-                        {isSelected && !isCustomOption && (
-                          <Ionicons name="checkmark" size={20} color="#FF6500" />
-                        )}
-                      </TouchableOpacity>
-                    );
-                  })}
-                </ScrollView>
+              <Text style={styles.label}>Search Subjects</Text>
+              <View style={styles.searchContainer}>
+                <Ionicons name="search" size={20} color="#A0A0A0" style={styles.searchIcon} />
+                <TextInput
+                  style={styles.searchInput}
+                  value={searchQuery}
+                  onChangeText={(text) => {
+                    setSearchQuery(text);
+                    setShowResults(true);
+                  }}
+                  onFocus={() => setShowResults(true)}
+                  placeholder="Type to search subjects..."
+                  placeholderTextColor="#666666"
+                  autoFocus={true}
+                />
+                {searchQuery.length > 0 && (
+                  <TouchableOpacity
+                    onPress={() => {
+                      setSearchQuery('');
+                      setShowResults(true);
+                    }}
+                    style={styles.clearButton}
+                  >
+                    <Ionicons name="close-circle" size={20} color="#A0A0A0" />
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
 
-            {/* Custom Subject Input */}
-            {showCustomInput && (
+            {/* Search Results */}
+            {showResults && (
               <View style={styles.inputContainer}>
-                <Text style={styles.label}>Custom Subject Name</Text>
-                <TextInput
-                  style={styles.input}
-                  value={customSubjectName}
-                  onChangeText={setCustomSubjectName}
-                  placeholder="Enter subject name"
-                  placeholderTextColor="#666666"
-                  maxLength={50}
-                  autoFocus={true}
-                />
+                <Text style={styles.label}>Search Results</Text>
+                <View style={styles.resultsContainer}>
+                  {filteredSubjects.length > 0 ? (
+                    <FlatList
+                      data={filteredSubjects}
+                      keyExtractor={(item, index) => `${item}-${index}`}
+                      renderItem={({ item }) => (
+                        <TouchableOpacity
+                          style={styles.resultItem}
+                          onPress={() => handleAddSubject(item)}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.resultItemText}>{item}</Text>
+                          <Ionicons name="add-circle" size={20} color="#FF6500" />
+                        </TouchableOpacity>
+                      )}
+                      nestedScrollEnabled={true}
+                      scrollEnabled={true}
+                      keyboardShouldPersistTaps="handled"
+                      showsVerticalScrollIndicator={true}
+                    />
+                  ) : canAddCustom ? (
+                    <TouchableOpacity
+                      style={styles.resultItem}
+                      onPress={() => handleAddSubject(searchQuery.trim())}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.resultItemText}>
+                        Add "{searchQuery.trim()}" as custom subject
+                      </Text>
+                      <Ionicons name="add-circle" size={20} color="#FF6500" />
+                    </TouchableOpacity>
+                  ) : (
+                    <Text style={styles.noResultsText}>No subjects found</Text>
+                  )}
+                </View>
+              </View>
+            )}
+
+            {/* Added Subjects List */}
+            {addedSubjects.length > 0 && (
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Added Subjects ({addedSubjects.length})</Text>
+                <View style={styles.addedContainer}>
+                  {addedSubjects.map((subjectName, index) => (
+                    <View key={index} style={styles.addedItem}>
+                      <Text style={styles.addedItemText}>{subjectName}</Text>
+                      <TouchableOpacity
+                        onPress={() => handleRemoveAddedSubject(subjectName)}
+                        style={styles.removeButton}
+                      >
+                        <Ionicons name="close-circle" size={20} color="#FF6B6B" />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
               </View>
             )}
 
@@ -214,16 +278,25 @@ export default function AddSubjectModal({
                 maxLength={3}
               />
             </View>
-          </ScrollView>
+          </View>
 
           {/* Add Button */}
-          <View style={styles.footer}>
-            <TouchableOpacity style={styles.addButton} onPress={handleAdd} activeOpacity={0.7}>
-              <Text style={styles.addButtonText}>Add Subject</Text>
+          <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 20) }]}>
+            <TouchableOpacity 
+              style={[styles.addButton, addedSubjects.length === 0 && styles.addButtonDisabled]} 
+              onPress={handleConfirmAdd} 
+              activeOpacity={0.7}
+              disabled={addedSubjects.length === 0}
+            >
+              <Text style={styles.addButtonText}>
+                Add {addedSubjects.length > 0 ? `${addedSubjects.length} ` : ''}Subject{addedSubjects.length !== 1 ? 's' : ''}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+          </KeyboardAvoidingView>
+        </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 }
@@ -232,14 +305,18 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-start',
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   container: {
     backgroundColor: '#1A1A1A',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '90%',
-    paddingBottom: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    flex: 1,
+    flexDirection: 'column',
+    position: 'relative',
   },
   header: {
     flexDirection: 'row',
@@ -260,7 +337,8 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 20,
-    maxHeight: 500,
+    flex: 1,
+    paddingBottom: 80,
   },
   inputContainer: {
     marginTop: 20,
@@ -272,48 +350,83 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     fontFamily: 'Stark',
   },
-  dropdownContainer: {
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1A1A1A',
+    borderRadius: 8,
+    borderWidth: 0.5,
+    borderColor: '#FFFFFF',
+    paddingHorizontal: 12,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#FFFFFF',
+    paddingVertical: 12,
+    fontFamily: 'Stark',
+  },
+  clearButton: {
+    padding: 4,
+  },
+  resultsContainer: {
     backgroundColor: '#1A1A1A',
     borderRadius: 8,
     borderWidth: 0.5,
     borderColor: '#FFFFFF',
     maxHeight: 200,
+    padding: 8,
   },
-  dropdown: {
-    maxHeight: 200,
-  },
-  dropdownItem: {
+  resultItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     borderBottomWidth: 0.5,
-    borderBottomColor: '#FFFFFF',
+    borderBottomColor: '#2A2A2A',
   },
-  dropdownItemActive: {
-    backgroundColor: '#2A2A2A',
-  },
-  dropdownItemText: {
+  resultItemText: {
     fontSize: 14,
     color: '#FFFFFF',
     flex: 1,
     fontFamily: 'Stark',
   },
-  dropdownItemTextActive: {
-    color: '#FF6500',
-    fontWeight: '600',
+  noResultsText: {
+    fontSize: 14,
+    color: '#A0A0A0',
+    textAlign: 'center',
+    paddingVertical: 20,
     fontFamily: 'Stark',
   },
-  customOption: {
-    borderTopWidth: 0.5,
-    borderTopColor: '#FFFFFF',
-    marginTop: 4,
+  addedContainer: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: 8,
+    borderWidth: 0.5,
+    borderColor: '#FFFFFF',
+    padding: 8,
+    maxHeight: 200,
   },
-  customOptionText: {
+  addedItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#2A2A2A',
+  },
+  addedItemText: {
+    fontSize: 14,
     color: '#FF6500',
-    fontStyle: 'italic',
+    flex: 1,
     fontFamily: 'Stark',
+  },
+  removeButton: {
+    padding: 4,
   },
   input: {
     backgroundColor: '#1A1A1A',
@@ -326,17 +439,26 @@ const styles = StyleSheet.create({
     fontFamily: 'Stark',
   },
   footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     paddingHorizontal: 20,
     paddingTop: 20,
+    paddingBottom: 20,
     borderTopWidth: 0.5,
     borderTopColor: '#FFFFFF',
-    marginTop: 20,
+    backgroundColor: '#1A1A1A',
   },
   addButton: {
     backgroundColor: '#FF6500',
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',
+  },
+  addButtonDisabled: {
+    backgroundColor: '#2A2A2A',
+    opacity: 0.5,
   },
   addButtonText: {
     fontSize: 16,
